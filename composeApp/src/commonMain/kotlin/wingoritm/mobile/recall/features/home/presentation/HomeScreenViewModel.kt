@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import wingoritm.mobile.recall.features.home.data.NoteRepository
 import wingoritm.mobile.recall.features.home.data.NoteResponse
 
-class HomeViewModel(
+class HomeScreenViewModel(
     private val repository: NoteRepository
 ) : ViewModel() {
 

@@ -21,26 +21,46 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.aakira.napier.Napier
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
+import wingoritm.mobile.recall.core.designSystem.AppTheme
+import wingoritm.mobile.recall.features.home.data.NoteResponse
 import wingoritm.mobile.recall.features.home.presentation.components.HomeAppBar
 import wingoritm.mobile.recall.features.home.presentation.components.NoteCard
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Preview
+/**
+ * 1. The Entry Point (Stateful, has Koin)
+ * // This is what your Navigation Host calls
+ */
 @Composable
-fun HomeScreen() {
-    // Koin gives us the existing ViewModel (or creates a new one if needed)
-    val viewModel = koinViewModel<HomeViewModel>()
-
-    // Collect the StateFlow as Compose State
+@OptIn(ExperimentalMaterial3Api::class)
+fun HomeScreen(
+    navigateToEditor: () -> Unit,
+    viewModel: HomeScreenViewModel = koinViewModel<HomeScreenViewModel>()
+) {
     val notes by viewModel.notes.collectAsState()
 
+    HomeContent(
+        notes = notes,
+        navigateToEditor = navigateToEditor
+    )
+}
+
+/**
+ * // 2. The Visuals (Stateless, No Koin)
+ * // This effectively becomes your "View"
+ */
+@Composable
+fun HomeContent(
+    notes: List<NoteResponse>,
+    navigateToEditor: () -> Unit
+) {
     Scaffold(
         // 1. The App Bar
         topBar = {
             HomeAppBar(
-                isSearchEnabled = false, // Hardcoded config for now
+                isSearchEnabled = false,
                 appVersion = "v0.0.1-beta"
             )
         },
@@ -48,8 +68,8 @@ fun HomeScreen() {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // TODO: Handle click action here
-                    println("FAB Clicked!")
+                    Napier.i("Floating button clicked navigating to editor...", tag = "HomeScreen")
+                    navigateToEditor()
                 },
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
@@ -87,10 +107,27 @@ fun HomeScreen() {
                 items(notes) { note ->
                     NoteCard(
                         note = note,
-                        onClick = {println("Clicked on note: ${note.id}")}
+                        onClick = { println("Clicked on note: ${note.id}") }
                     )
                 }
             }
         }
+    }
+}
+
+/**
+ * preview entry point
+ */
+@Preview(showBackground = true)
+@Composable
+fun HomeScreenPreview() {
+    AppTheme {
+        HomeContent(
+            notes = listOf(
+                NoteResponse(title = "Mock Note 1", id = "", insight = "mocked", source = "", tags = emptyList(), createdAt = ""),
+                NoteResponse(title = "Mock Note 2", id = "", insight = "mocked", source = "", tags = emptyList(), createdAt = ""),
+            ),
+            navigateToEditor = {}
+        )
     }
 }
