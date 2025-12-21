@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,45 +24,77 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.ui.tooling.preview.Preview
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.parameter.parametersOf
 import wingoritm.mobile.recall.core.designSystem.AppTheme
+import wingoritm.mobile.recall.features.editor.data.EditorialUIState
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditorialScreen(
     onBackClick: () -> Unit,
+    isPreviewEnabled: Boolean = false,
+    noteId: String?,
+    viewModel: EditorialViewModel = koinViewModel<EditorialViewModel>(
+        parameters = { parametersOf(noteId) }
+    )
+
+) {
+    val state by viewModel.uiState.collectAsState()
+
+    EditorialContent(
+        state = state,
+        onBackClick = onBackClick,
+        onSaveClick = { viewModel.save() },
+        onTitleChange = { viewModel.onTitleChange(it) },
+        onContentChange = { viewModel.onContentChange(it) },
+        isPreviewEnabled = isPreviewEnabled
+    )
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+fun EditorialContent(
+    state: EditorialUIState,
+    onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
+    onTitleChange: (String) -> Unit,
+    onContentChange: (String) -> Unit,
     isPreviewEnabled: Boolean = false
 ) {
-    // State for text inputs
-    var title by remember { mutableStateOf("") }
-    var content by remember { mutableStateOf("") }
+    val focusRequester = remember { FocusRequester() } // Focus Requester to handle keyboard auto-show
 
-    // Focus Requester to handle keyboard auto-show
-    val focusRequester = remember { FocusRequester() }
-
-    // Req 3: Request focus immediately when screen launches
+    // Request focus immediately when screen launches and the title is empty
     LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
+        if (state.title.isEmpty()){
+            focusRequester.requestFocus()
+        }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {},
+                title = {
+                    Text(
+                        text = state.toolbarTitle,
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                },
                 navigationIcon = {
-                    // back icon
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -69,30 +102,31 @@ fun EditorialScreen(
                         )
                     }
                 },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
+                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
+                ),
                 actions = {
                     // Eye icon disabled/enabled based on param
-                    IconButton(
+                    FilledTonalIconButton(
                         onClick = { /* Handle Preview */ },
                         enabled = isPreviewEnabled
                     ) {
                         Icon(
                             imageVector = Icons.Default.Visibility,
                             contentDescription = "Preview",
-                            tint = if (isPreviewEnabled) MaterialTheme.colorScheme.onSurface else Color.Gray.copy(alpha = 0.5f)
                         )
                     }
-                    IconButton(onClick = onSaveClick) {
+
+                    // Save icon
+                    FilledTonalIconButton(onClick = onSaveClick) {
                         Icon(
                             imageVector = Icons.Default.Save,
                             contentDescription = "Save"
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onBackground,
-                    actionIconContentColor = MaterialTheme.colorScheme.onBackground
-                )
+                }
             )
         }
     ) { paddingValues ->
@@ -105,23 +139,22 @@ fun EditorialScreen(
         ) {
             // Req 2: Title Field
             TransparentTextField(
-                text = title,
-                onValueChange = { title = it },
-                placeholder = "Title",
+                text = state.title,
+                onValueChange = onTitleChange,
+                placeholder = "Title skibidi",
                 textStyle = MaterialTheme.typography.headlineMedium.copy(fontSize = 32.sp),
-                // Attach the focus requester here
-                modifier = Modifier.focusRequester(focusRequester)
+                modifier = Modifier.focusRequester(focusRequester) // Attach the focus requester here
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
             // Req 2: Content Field
             TransparentTextField(
-                text = content,
-                onValueChange = { content = it },
+                text = state.content,
+                onValueChange = onContentChange,
                 placeholder = "Type something...",
                 textStyle = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f) // Takes up remaining space
+                modifier = Modifier.weight(1f)
             )
         }
     }
@@ -165,12 +198,18 @@ fun TransparentTextField(
  */
 @Preview(showBackground = true)
 @Composable
-fun HomeScreenPreview() {
+fun EditorialScreenPreview() {
     AppTheme {
-        EditorialScreen(
-           onBackClick = {},
-           onSaveClick = {},
-           isPreviewEnabled = false
+        EditorialContent(
+            state = EditorialUIState(
+                title = "Recall Title Idea",
+                content = "This is a preview of the insight on recall..."
+            ),
+            onBackClick = {},
+            onSaveClick = {},
+            onTitleChange = {},
+            onContentChange = {},
+            isPreviewEnabled = true
         )
     }
 }

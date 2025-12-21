@@ -2,7 +2,7 @@ package wingoritm.mobile.recall.features.home.di
 
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
-import wingoritm.mobile.recall.features.home.data.NoteRepository
+import wingoritm.mobile.recall.data.NoteRepository
 import wingoritm.mobile.recall.features.home.presentation.HomeScreenViewModel
 
 val homeModule = module {

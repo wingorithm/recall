@@ -13,6 +13,7 @@ import kotlinx.serialization.json.Json
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
+import wingoritm.mobile.recall.features.editor.di.editorialModule
 import wingoritm.mobile.recall.features.home.di.homeModule
 
 val appModule = module {
@@ -47,9 +48,9 @@ fun initKoin(config: KoinAppDeclaration? = null) {
         // 👇 LOAD ALL MODULES HERE
         modules(
             appModule,  // The Foundation
-            homeModule, // Feature home
-            // profileModule, // Feature 2 (Future)
-            // settingsModule // Feature 3 (Future)
+            homeModule, // home page
+            editorialModule, // edit and create page
+            // add other modules here...
         )
     }
 }

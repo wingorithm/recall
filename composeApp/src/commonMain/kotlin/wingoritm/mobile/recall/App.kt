@@ -4,9 +4,17 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
+import kotlinx.serialization.Serializable
 import wingoritm.mobile.recall.core.designSystem.AppTheme
 import wingoritm.mobile.recall.features.editor.presentation.EditorialScreen
 import wingoritm.mobile.recall.features.home.presentation.HomeScreen
+
+@Serializable
+object HomeRoute
+
+@Serializable
+data class EditorialRoute(val noteId: String?)
 
 /**
  * {navController} is the controller that manages the back stack
@@ -19,22 +27,21 @@ fun App() {
 
         NavHost(
             navController = navController,
-            startDestination = "home"
+            startDestination = HomeRoute
         ) {
-            composable("home") {
+            composable<HomeRoute> {
                 HomeScreen(
-                    navigateToEditor = {
-                        navController.navigate("editor")
+                    navigateToEditor = { noteId ->
+                        navController.navigate(EditorialRoute(noteId))
                     }
                 )
             }
-            composable("editor") {
+
+            composable<EditorialRoute> { backStackEntry ->
                 EditorialScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
-                    onSaveClick = {},
-                    isPreviewEnabled = false
+                    onBackClick = { navController.popBackStack() },
+                    isPreviewEnabled = false,
+                    noteId = backStackEntry.toRoute<EditorialRoute>().noteId,
                 )
             }
         }

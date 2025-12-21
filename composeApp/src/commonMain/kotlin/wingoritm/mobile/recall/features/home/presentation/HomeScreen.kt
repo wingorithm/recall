@@ -25,7 +25,7 @@ import io.github.aakira.napier.Napier
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import wingoritm.mobile.recall.core.designSystem.AppTheme
-import wingoritm.mobile.recall.features.home.data.NoteResponse
+import wingoritm.mobile.recall.data.NoteResponse
 import wingoritm.mobile.recall.features.home.presentation.components.HomeAppBar
 import wingoritm.mobile.recall.features.home.presentation.components.NoteCard
 
@@ -36,7 +36,7 @@ import wingoritm.mobile.recall.features.home.presentation.components.NoteCard
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
 fun HomeScreen(
-    navigateToEditor: () -> Unit,
+    navigateToEditor: (noteId: String?) -> Unit,
     viewModel: HomeScreenViewModel = koinViewModel<HomeScreenViewModel>()
 ) {
     val notes by viewModel.notes.collectAsState()
@@ -54,7 +54,7 @@ fun HomeScreen(
 @Composable
 fun HomeContent(
     notes: List<NoteResponse>,
-    navigateToEditor: () -> Unit
+    navigateToEditor: (noteId: String?) -> Unit
 ) {
     Scaffold(
         // 1. The App Bar
@@ -69,7 +69,7 @@ fun HomeContent(
             FloatingActionButton(
                 onClick = {
                     Napier.i("Floating button clicked navigating to editor...", tag = "HomeScreen")
-                    navigateToEditor()
+                    navigateToEditor(null)
                 },
                 containerColor = MaterialTheme.colorScheme.secondary,
                 contentColor = MaterialTheme.colorScheme.onSecondary
@@ -107,7 +107,10 @@ fun HomeContent(
                 items(notes) { note ->
                     NoteCard(
                         note = note,
-                        onClick = { println("Clicked on note: ${note.id}") }
+                        onClick = {
+                            Napier.i("Note ${note.id} clicked navigating to editor...", tag = "HomeScreen")
+                            navigateToEditor(note.id)
+                        }
                     )
                 }
             }

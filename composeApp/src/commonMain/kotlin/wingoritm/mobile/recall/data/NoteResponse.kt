@@ -1,4 +1,4 @@
-package wingoritm.mobile.recall.features.home.data
+package wingoritm.mobile.recall.data
 
 import kotlinx.serialization.Serializable
 

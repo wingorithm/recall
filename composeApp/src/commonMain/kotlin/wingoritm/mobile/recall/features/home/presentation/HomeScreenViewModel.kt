@@ -6,8 +6,8 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import wingoritm.mobile.recall.features.home.data.NoteRepository
-import wingoritm.mobile.recall.features.home.data.NoteResponse
+import wingoritm.mobile.recall.data.NoteRepository
+import wingoritm.mobile.recall.data.NoteResponse
 
 class HomeScreenViewModel(
     private val repository: NoteRepository
