@@ -34,6 +34,9 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
+            // SHARED LOGIC KMP
+            implementation(projects.shared)
+
             implementation(compose.runtime)
             implementation(compose.foundation)
             implementation(compose.material3)
@@ -44,7 +47,7 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
 
-            // 👇 NETWORK & SERIALIZATION
+            // NETWORK & SERIALIZATION
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
@@ -55,6 +58,7 @@ kotlin {
 
             implementation(libs.napier)
             implementation(libs.navigation.compose)
+
 //            implementation(libs.lifecycle.runtime.compose)
 //
 //            implementation(libs.coil.compose)

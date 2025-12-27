@@ -7,15 +7,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import wingoritm.mobile.recall.data.NoteRepository
 import wingoritm.mobile.recall.features.editor.data.CreateModeStrategy
 import wingoritm.mobile.recall.features.editor.data.EditModeStrategy
 import wingoritm.mobile.recall.features.editor.data.EditorialStrategy
 import wingoritm.mobile.recall.features.editor.data.EditorialUIState
+import wingoritm.mobile.recall.repository.InsightRepository
 
 class EditorialViewModel(
     private val noteId: String?,
-    private val repo: NoteRepository
+    private val repo: InsightRepository
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(EditorialUIState(isLoading = true))
     val uiState = _uiState.asStateFlow()
@@ -42,7 +42,7 @@ class EditorialViewModel(
             viewModelScope.launch {
                 try {
                     // Fetch data first
-                    val note = repo.getNoteDetailById(noteId)
+                    val note = repo.getInsightById(noteId)
 
                     //  create the strategy by data
                     val editStrategy = EditModeStrategy(note, repo)

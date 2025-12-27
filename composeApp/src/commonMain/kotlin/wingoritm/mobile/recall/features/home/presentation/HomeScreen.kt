@@ -1,7 +1,6 @@
 package wingoritm.mobile.recall.features.home.presentation
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -14,19 +13,19 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import io.github.aakira.napier.Napier
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.viewmodel.koinViewModel
 import wingoritm.mobile.recall.core.designSystem.AppTheme
-import wingoritm.mobile.recall.data.NoteResponse
+import wingoritm.mobile.recall.domain.InsightResponse
 import wingoritm.mobile.recall.features.home.presentation.components.HomeAppBar
+import wingoritm.mobile.recall.features.home.presentation.components.HomeEmptyScreen
+import wingoritm.mobile.recall.features.home.presentation.components.HomeLoadingScreen
 import wingoritm.mobile.recall.features.home.presentation.components.NoteCard
 
 /**
@@ -39,10 +38,10 @@ fun HomeScreen(
     navigateToEditor: (noteId: String?) -> Unit,
     viewModel: HomeScreenViewModel = koinViewModel<HomeScreenViewModel>()
 ) {
-    val notes by viewModel.notes.collectAsState()
+    val uiState by viewModel.uiState.collectAsState()
 
     HomeContent(
-        notes = notes,
+        homeUiState = uiState,
         navigateToEditor = navigateToEditor
     )
 }
@@ -53,7 +52,7 @@ fun HomeScreen(
  */
 @Composable
 fun HomeContent(
-    notes: List<NoteResponse>,
+    homeUiState: HomeUiState,
     navigateToEditor: (noteId: String?) -> Unit
 ) {
     Scaffold(
@@ -81,37 +80,29 @@ fun HomeContent(
             }
         }
     ) { paddingValues ->
-        if (notes.isEmpty()) {
-            // 1. Empty State
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Create your first insights!",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            // 2. List State
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(notes) { note ->
-                    NoteCard(
-                        note = note,
-                        onClick = {
-                            Napier.i("Note ${note.id} clicked navigating to editor...", tag = "HomeScreen")
-                            navigateToEditor(note.id)
-                        }
-                    )
+        when (homeUiState) {
+            HomeUiState.Empty -> HomeEmptyScreen(paddingValues)
+            HomeUiState.Loading -> HomeLoadingScreen()
+            is HomeUiState.Success -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(homeUiState.insights) { note ->
+                        NoteCard(
+                            note = note,
+                            onClick = {
+                                Napier.i(
+                                    "Note ${note.id} clicked navigating to editor...",
+                                    tag = "HomeScreen"
+                                )
+                                navigateToEditor(note.id)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -121,14 +112,30 @@ fun HomeContent(
 /**
  * preview entry point
  */
-@Preview(showBackground = true)
+@Preview
 @Composable
 fun HomeScreenPreview() {
     AppTheme {
         HomeContent(
-            notes = listOf(
-                NoteResponse(title = "Mock Note 1", id = "", insight = "mocked", source = "", tags = emptyList(), createdAt = ""),
-                NoteResponse(title = "Mock Note 2", id = "", insight = "mocked", source = "", tags = emptyList(), createdAt = ""),
+            homeUiState = HomeUiState.Success(
+                listOf(
+                    InsightResponse(
+                        title = "Mock Note 1",
+                        id = "",
+                        insight = "mocked",
+                        source = "",
+                        tags = emptyList(),
+                        createdAt = ""
+                    ),
+                    InsightResponse(
+                        title = "Mock Note 2",
+                        id = "",
+                        insight = "mocked",
+                        source = "",
+                        tags = emptyList(),
+                        createdAt = ""
+                    ),
+                )
             ),
             navigateToEditor = {}
         )

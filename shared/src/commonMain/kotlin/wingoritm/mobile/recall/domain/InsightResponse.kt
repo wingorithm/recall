@@ -1,9 +1,9 @@
-package wingoritm.mobile.recall.data
+package wingoritm.mobile.recall.domain
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class NoteResponse(
+data class InsightResponse(
     val id: String,
     val title: String,
     val insight: String,
