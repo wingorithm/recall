@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -44,7 +44,6 @@ import wingoritm.mobile.recall.features.editor.data.EditorialUIState
 @Composable
 fun EditorialScreen(
     onBackClick: () -> Unit,
-    isPreviewEnabled: Boolean = false,
     noteId: String?,
     viewModel: EditorialViewModel = koinViewModel<EditorialViewModel>(
         parameters = { parametersOf(noteId) }
@@ -56,10 +55,10 @@ fun EditorialScreen(
     EditorialContent(
         state = state,
         onBackClick = onBackClick,
-        onSaveClick = { viewModel.save() },
+        onSaveClick = { viewModel.save(onBackClick) },
+        onDeleteClick = { viewModel.delete(onBackClick) },
         onTitleChange = { viewModel.onTitleChange(it) },
         onContentChange = { viewModel.onContentChange(it) },
-        isPreviewEnabled = isPreviewEnabled
     )
 }
 
@@ -69,9 +68,9 @@ fun EditorialContent(
     state: EditorialUIState,
     onBackClick: () -> Unit,
     onSaveClick: () -> Unit,
+    onDeleteClick: () -> Unit,
     onTitleChange: (String) -> Unit,
     onContentChange: (String) -> Unit,
-    isPreviewEnabled: Boolean = false
 ) {
     val focusRequester = remember { FocusRequester() } // Focus Requester to handle keyboard auto-show
 
@@ -108,14 +107,14 @@ fun EditorialContent(
                     actionIconContentColor = MaterialTheme.colorScheme.onBackground
                 ),
                 actions = {
-                    // Eye icon disabled/enabled based on param
+                    // Delete icon disabled/enabled based on param
                     FilledTonalIconButton(
-                        onClick = { /* Handle Preview */ },
-                        enabled = isPreviewEnabled
+                        onClick = onDeleteClick,
+                        enabled = !state.isDeleteDisabled
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Visibility,
-                            contentDescription = "Preview",
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete",
                         )
                     }
 
@@ -203,13 +202,13 @@ fun EditorialScreenPreview() {
         EditorialContent(
             state = EditorialUIState(
                 title = "Recall Title Idea",
-                content = "This is a preview of the insight on recall..."
+                content = "This is a preview of the insight on recall...",
             ),
             onBackClick = {},
             onSaveClick = {},
+            onDeleteClick = {},
             onTitleChange = {},
             onContentChange = {},
-            isPreviewEnabled = true
         )
     }
 }

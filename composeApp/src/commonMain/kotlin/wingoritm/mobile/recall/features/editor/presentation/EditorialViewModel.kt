@@ -34,6 +34,7 @@ class EditorialViewModel(
             _uiState.update {
                 it.copy(
                     toolbarTitle = createStrategy.toolbarTitle,
+                    isDeleteDisabled = createStrategy.isDeleteDisabled,
                     isLoading = false
                 )
             }
@@ -41,19 +42,17 @@ class EditorialViewModel(
             // --- CASE 2: EDIT MODE (Asynchronous) ---
             viewModelScope.launch {
                 try {
-                    // Fetch data first
                     val note = repo.getInsightById(noteId)
 
-                    //  create the strategy by data
                     val editStrategy = EditModeStrategy(note, repo)
                     strategy = editStrategy
 
-                    // Update UI with fetched data
                     _uiState.update {
                         it.copy(
                             title = editStrategy.title,
                             content = editStrategy.content,
                             toolbarTitle = editStrategy.toolbarTitle,
+                            isDeleteDisabled = editStrategy.isDeleteDisabled,
                             isLoading = false
                         )
                     }
@@ -73,7 +72,7 @@ class EditorialViewModel(
         _uiState.update { it.copy(content = newContent) }
     }
 
-    fun save() {
+    fun save(onSuccess: () -> Unit) {
         val currentState = _uiState.value
 
         // Guard clause: Don't save if we are still loading
@@ -82,10 +81,28 @@ class EditorialViewModel(
         viewModelScope.launch {
             try {
                 currentStrategy.onSave(currentState.title, currentState.content)
-                Napier.d("Save successful")
-                // Navigate back
+                Napier.i("Save successful", tag = "EditorialViewModel")
+                onSuccess()
             } catch (e: Exception) {
                 Napier.e("Save failed", e)
+            }
+        }
+    }
+
+    fun delete(
+        onSuccess: () -> Unit
+    ) {
+        val currentState = _uiState.value
+
+        val currentStrategy = strategy ?: return
+
+        viewModelScope.launch {
+            try {
+                currentStrategy.onDelete()
+                Napier.i("Delete successful", tag = "EditorialViewModel")
+                onSuccess()
+            } catch (e: Exception) {
+                Napier.e("Delete failed", e)
             }
         }
     }

@@ -1,5 +1,7 @@
 package wingoritm.mobile.recall
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -27,9 +29,14 @@ fun App() {
 
         NavHost(
             navController = navController,
-            startDestination = HomeRoute
+            startDestination = HomeRoute,
         ) {
-            composable<HomeRoute> {
+            composable<HomeRoute>(
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
+            ) {
                 HomeScreen(
                     navigateToEditor = { noteId ->
                         navController.navigate(EditorialRoute(noteId))
@@ -37,10 +44,14 @@ fun App() {
                 )
             }
 
-            composable<EditorialRoute> { backStackEntry ->
+            composable<EditorialRoute>(
+                enterTransition = { EnterTransition.None },
+                exitTransition = { ExitTransition.None },
+                popEnterTransition = { EnterTransition.None },
+                popExitTransition = { ExitTransition.None }
+            ) { backStackEntry ->
                 EditorialScreen(
                     onBackClick = { navController.popBackStack() },
-                    isPreviewEnabled = false,
                     noteId = backStackEntry.toRoute<EditorialRoute>().noteId,
                 )
             }

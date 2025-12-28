@@ -32,6 +32,9 @@ kotlin {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
+
+            implementation(libs.glance.appwidget)
+            implementation(libs.glance.material3)
         }
         commonMain.dependencies {
             // SHARED LOGIC KMP
