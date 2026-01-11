@@ -5,13 +5,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.action.actionParametersOf
+import androidx.glance.action.actionStartActivity
+import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.color.ColorProvider
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
@@ -19,47 +26,85 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import org.jetbrains.compose.ui.tooling.preview.Preview
-import wingoritm.mobile.recall.core.designSystem.AppTheme
+import wingoritm.mobile.recall.MainActivity
 import wingoritm.mobile.recall.core.designSystem.onSurfaceLight
 import wingoritm.mobile.recall.core.designSystem.primaryLight
 import wingoritm.mobile.recall.core.designSystem.surfaceContainerHighLight
 import wingoritm.mobile.recall.core.designSystem.surfaceLight
 
+// Define keys to store data in the Widget's cache
+object InsightWidgetKeys {
+    val titleKey = stringPreferencesKey("title")
+    val bodyKey = stringPreferencesKey("body")
+    val dateKey = stringPreferencesKey("date")
+    val authorKey = stringPreferencesKey("author")
+    val tagKey = stringPreferencesKey("tag")
+}
+
 private fun Color.toProvider() = ColorProvider(day = this, night = this)
 
 class InsightAppWidget : GlanceAppWidget() {
+
+    // Use Preferences to store the widget's state
+    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         provideContent {
-            InsightWidgetContent()
+            // Read the current state from Preferences
+            val prefs = currentState<Preferences>()
+
+            val title = prefs[InsightWidgetKeys.titleKey] ?: "Loading Insight..."
+            val body = prefs[InsightWidgetKeys.bodyKey] ?: "Tap to refresh or open app."
+            val date = prefs[InsightWidgetKeys.dateKey] ?: "--"
+            val author = prefs[InsightWidgetKeys.authorKey] ?: "-"
+            val tag = prefs[InsightWidgetKeys.tagKey] ?: "-"
+            val isDataEmpty = title == "Loading Insight..."
+
+            InsightWidgetContent(
+                date = date,
+                author = author,
+                insightTitle = title,
+                insightBody = body,
+                tag = tag,
+                isDataEmpty = isDataEmpty
+            )
         }
     }
 }
+
 @Composable
 fun InsightWidgetContent(
-    date: String = "28 Dec 2025",
-    author: String = "me",
-    insightTitle: String = "Insight may Consist of 20 words",
-    insightBody: String = "description here consist of 20 words too maybe, but you may read more in app so ...",
-    tag: String = "#lifestyle"
+    date: String,
+    author: String,
+    insightTitle: String,
+    insightBody: String,
+    tag: String,
+    isDataEmpty: Boolean
 ) {
     // 1. Root Container
     Column(
         modifier = GlanceModifier
             .fillMaxWidth()
             .background(surfaceLight.toProvider())
-            .cornerRadius(32.dp)
+            .cornerRadius(12.dp)
             .padding(16.dp)
+            .clickable(
+                actionRunCallback<InsightClickAction>(
+                    actionParametersOf(InsightClickAction.IS_DATA_EMPTY_KEY to isDataEmpty)
+                )
+            )
     ) {
         // 2. Header Row (Date/Author)
         WidgetHeader(author, date)
 
         // 3. Main Label
         Text(
-            text = "Insight of the day:",
+            text = "Insight Of The Day:",
             style = TextStyle(
                 fontWeight = FontWeight.Bold,
                 fontSize = 22.sp,
@@ -153,13 +198,5 @@ fun InnerInsightCard(
                 )
             )
         }
-    }
-}
-
-@Preview
-@Composable
-fun InsightWidgetPreview() {
-    AppTheme {
-        InsightWidgetContent()
     }
 }

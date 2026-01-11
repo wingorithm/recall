@@ -35,6 +35,8 @@ kotlin {
 
             implementation(libs.glance.appwidget)
             implementation(libs.glance.material3)
+            implementation(libs.androidx.work)
+            implementation(libs.kotlin.datetime)
         }
         commonMain.dependencies {
             // SHARED LOGIC KMP
